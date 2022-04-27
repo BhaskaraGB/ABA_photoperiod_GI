@@ -1,0 +1,226 @@
+
+rm(list = ls())
+
+setwd("F:/Box Sync/BHASKAR UT AUSTIN/Research/Lucio and beata/Thermal_images/new_analysis/")
+
+
+library(tidyverse)
+library(ggpubr)
+library(rstatix)
+
+df <- read.csv("LT_mean_gi.csv") %>% 
+  select(PlantID, Genotype, Geno, Photoperiod, Treatment, LT_mean,  Geno_Treat) %>% 
+  filter(Genotype != "gi-100")#gi-100 was eliminated from the analysis as the LT values were highly variable. 
+
+
+## **Check Assumptions**
+
+### **Identify outliers**
+
+df$Index <- paste(df$Geno, df$Photoperiod, df$Treatment, df$PlantID, sep = "_")
+
+df_out<-df %>%
+  group_by(Genotype, Treatment, Photoperiod) %>%
+  identify_outliers(LT_mean)
+
+df_out
+
+### **Dropping outliers**
+
+dfout<-df_out[which(df_out$is.outlier=="TRUE"),]
+
+dfout
+
+
+df2<-df[-which(df$Index %in% dfout$Index),]
+
+
+### **Normality assumption**
+
+df2 %>%
+  group_by(Treatment,Photoperiod, Genotype) %>%
+  shapiro_test(LT_mean)
+
+### **Create QQ plot for each cell of design:**
+
+ggqqplot(df2, "LT_mean", ggtheme = theme_bw()) +
+  facet_grid(Photoperiod ~ Treatment, labeller = "label_both")
+
+
+### **Homogneity of variance assumption**
+  
+df2 %>%
+  group_by(Photoperiod) %>%
+  levene_test(LT_mean ~ Genotype*Treatment)
+
+### **Assumption of sphericity** : The Mauchly's test of sphericity and the sphericity corrections are internally 
+      #done using the R function anova_test() and get_anova_table() [rstatix package].
+
+## **Computation**
+
+#### **Key arguments for performing repeated measures ANOVA:**
+
+# data:data frame
+# 
+# dv:(numeric) the dependent (or outcome) variable name.
+# 
+# wid:variable name specifying the case/sample identifier.
+# 
+# between: between-subjects factor or grouping variable
+# 
+# within:within-subjects factor or grouping variable
+
+
+res.aov <- anova_test(data = df, 
+                      dv = LT_mean, wid = PlantID,
+                      within = Photoperiod, between = c(Genotype,Treatment)
+)
+
+get_anova_table(res.aov)
+
+
+#There was no significant three-way interaction between  Genotype,Treatment and Photoperiod, F(4, 66) = 0.692, p = 0.6.
+#But there was statistically significant two way interactions of Genotype and Photoperiod F(4, 66) = 12.04, p < 0.001 
+#and, Treatment and Phototperiod F(4, 66) = 10.39, p < 0.001.**
+  
+## **Post-hoc tests**
+  
+#Compute simple two way interaction for **Genotype and Treatment** at each level of photoperiod
+  
+  Geno.Treat <- df2 %>%
+  group_by(Photoperiod) %>%
+  anova_test(dv = LT_mean, wid = PlantID, between = c(Genotype, Treatment))
+
+Geno.Treat
+
+#only at ZT8 we see a two way interaction of Genotype and treatment
+
+
+
+#Compute simple simple main effects investigae the effect of treatment on Leaf temp at genotypic level
+
+Treat.effect <- df2 %>% 
+  filter(Photoperiod == "ZT8") %>% 
+  group_by(Photoperiod, Genotype) %>% 
+  anova_test(dv = LT_mean, wid = PlantID, between = Treatment)
+
+  Treat.effect
+  
+
+#Compute simple two way interaction for **Genotype and Photoperiod** at each level of Treatment
+
+Geno.Photo <- df2 %>%
+  group_by(Treatment) %>%
+  anova_test(dv = LT_mean, wid = PlantID, between = c(Genotype, Photoperiod))
+Geno.Photo
+
+
+#### * Compute simple two way interaction for **Treatment and Photoperiod** at each level of Genotype
+
+Treat.Photo <- df2 %>%
+  group_by(Genotype) %>%
+  anova_test(dv = LT_mean, wid = PlantID, between = c(Treatment, Photoperiod))
+
+Treat.Photo
+
+*#There was a statistically significant simple two-way interaction of Treatment and photoperiod for *gi-2 but not for Col
+  
+  ### **Compute simple simple main effects**
+  
+  #In our study, we could investigate the effect of Treatment on leaf temperatures at every level of Photoperiod. Note that, we will only need to do this for simple two-way interaction for "gi" mutants as those were the only simple two-way interactions that were statistically significant.*
+  
+  #Group the data by Photoperiod and Genotype, and analyze the simple main effect of Treatment on Leaf temperatures:
+  
+
+photoperiod.effect <- df2 %>%
+  filter(Genotype %in% c("gi-2")) %>% 
+  group_by(Photoperiod, Genotype) %>% 
+  anova_test(dv = LT_mean, wid = PlantID, between = Treatment)
+
+photoperiod.effect
+
+
+#There was statistically significant simple simple main effect of Treatment on the leaf temperatures for *gi* mutants at all three time points**
+  
+  ### **Compute simple simple comparisons**
+  
+pwc <- df2 %>%
+  filter(Genotype == "gi-2") %>% 
+  group_by(Genotype, Photoperiod) %>% 
+  pairwise_t_test(LT_mean ~ Treatment, p.adjust.method = "bonferroni") %>%
+  select(-p, -p.signif) # Remove details
+
+pwc
+
+### **Compute pairwaise comparison for signficant differences between Col and *gi* mutants over photoperiod**
+
+pwc <- df2 %>%
+  filter(Genotype %in% c("gi-2", "Col")) %>% 
+  group_by(Treatment, Photoperiod) %>% 
+  pairwise_t_test(LT_mean ~ Genotype, p.adjust.method = "bonferroni") %>%
+  select(-p, -p.signif) # Remove details
+
+pwc
+
+
+#**Only *gi-2* had significantly increased Leaf temperatures at ZT1, ZT8 and ZT16 upon ABA treatment whereas it had siginficant effect on leaf temperatures only at ZT1 under mock conditions.** 
+  
+
+## **Data visulization**
+  
+data <- df2
+  
+data$Photoperiod <- factor(data$Photoperiod,
+                           levels = c("ZT1", "ZT8", "ZT16"))
+##boxplot
+p <- ggboxplot(data, x = 'Genotype', y = "LT_mean", color = 'Treatment', 
+               facet.by = "Photoperiod", add = "jitter", shape = "Treatment", size = 0.5,
+               xlab = "", ylab = "Leaf temperature (°C)", 
+               font.y = c(14, "bold"))+
+  font("x.text", size = 14, color = "black", face = "bold.italic")+
+  font("y.text", size = 14, color = "black", face = "bold")+
+  rotate_x_text(45)
+
+
+p
+
+gi_LT_box <- 
+  ggpar(p,palette = 'aaas')+
+  theme(strip.text.x = element_text(size = 14, color = 'black', face = 'bold'),
+        legend.title = element_text(size = 16, face = "bold", color = 'black'),
+        legend.text = element_text(size = 14,face = "bold", color = 'black'),
+        legend.key.size = unit(1,'cm'))
+  
+
+gi_LT_box
+
+##Line plot
+
+p1 <- ggline(data, x = "Treatment", y = "LT_mean", color = "Genotype",
+       facet.by = "Photoperiod",add = c("mean_se"),size = 0.75,
+       xlab = "", ylab = "Leaf temperature (°C)",
+       font.y = c(14, "bold"))+
+       font("xy.text", size = 14, color = "black", face = "bold")
+     
+
+gi_LT_reaction <- p1 %>% 
+    ggpar(palette = 'aaas')+
+  geom_point(aes(color = Genotype), size = 1, alpha = 0.5)+
+  theme(strip.text.x = element_text(size = 14, color = 'black', face = 'bold'),
+        legend.title = element_text(size = 16, face = "bold", color = 'black'),
+        legend.text = element_text(size = 14,face = "bold", color = 'black'),
+        legend.key.width = unit(2, 'cm'))
+  
+
+gi_LT_reaction
+
+library(patchwork)
+
+box_reaction <- gi_LT_box / gi_LT_reaction
+
+box_reaction
+
+ggsave(box_reaction, filename = "LT_gi2.tiff", width = 8, height = 9, dpi = 300)
+
+
+ggsave(box_reaction, filename = "LT_gi2.svg", width = 8, height = 9, dpi = 300)

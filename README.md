@@ -1,4 +1,3 @@
-Thermal Images Analysis
 This script performs an analysis of leaf temperature data collected from different genotypes under various photoperiods and treatments. It includes steps to clean the data, check statistical assumptions, perform repeated measures ANOVA, and visualize the results. The analysis follows these main steps:
 
 Data Preparation: The script reads the data from a CSV file and selects relevant columns. It filters out the 'gi-100' genotype due to high variability in leaf temperature values.

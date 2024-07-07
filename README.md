@@ -1,23 +1,25 @@
-Overview
+# Overview
 This script performs a three-way mixed ANOVA and data visualization on leaf temperature (LT) data for different genotypes under varying photoperiods and treatments. It includes steps for identifying outliers, testing statistical assumptions, performing ANOVA, and creating visualizations.
 
-Prerequisites
+## Prerequisites
 Ensure the following R packages are installed:
 
-tidyverse
-ggpubr
-rstatix
-patchwork
+**tidyverse**
+**ggpubr**
+**rstatix
+**patchwork**
 
-Data Preparation: The script reads the data from a CSV file and selects relevant columns. It filters out the 'gi-100' genotype due to high variability in leaf temperature values.
+## Data Preparation: 
+The script reads the data from a CSV file and selects relevant columns. It filters out the 'gi-100' genotype due to high variability in leaf temperature values.
 
-Assumption Checks:
+## Assumption Checks:
 
-Outlier Identification: The script identifies and removes outliers.
-Normality: The Shapiro-Wilk test is used to check the normality of the data.
-Homogeneity of Variance: Levene's test checks the equality of variances.
-Sphericity: Mauchly's test for sphericity is performed internally during the ANOVA test.
-Statistical Analysis:
+**Outlier Identification**: The script identifies and removes outliers.
+**Normality**: The Shapiro-Wilk test is used to check the normality of the data.
+**Homogeneity of Variance**: Levene's test checks the equality of variances.
+**Sphericity**: Mauchly's test for sphericity is performed internally during the ANOVA test.
+
+## Statistical Analysis:
 
 ANOVA: A repeated measures ANOVA is conducted to assess the effects of genotype, treatment, and photoperiod on leaf temperature.
 Post-hoc Tests: Interaction effects and simple main effects are further analyzed using post-hoc tests.

@@ -1,4 +1,13 @@
-This script performs an analysis of leaf temperature data collected from different genotypes under various photoperiods and treatments. It includes steps to clean the data, check statistical assumptions, perform repeated measures ANOVA, and visualize the results. The analysis follows these main steps:
+Overview
+This script performs a three-way mixed ANOVA and data visualization on leaf temperature (LT) data for different genotypes under varying photoperiods and treatments. It includes steps for identifying outliers, testing statistical assumptions, performing ANOVA, and creating visualizations.
+
+Prerequisites
+Ensure the following R packages are installed:
+
+tidyverse
+ggpubr
+rstatix
+patchwork
 
 Data Preparation: The script reads the data from a CSV file and selects relevant columns. It filters out the 'gi-100' genotype due to high variability in leaf temperature values.
 

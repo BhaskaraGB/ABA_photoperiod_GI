@@ -4,10 +4,10 @@ This script performs a three-way mixed ANOVA and data visualization on leaf temp
 ## Prerequisites
 Ensure the following R packages are installed:
 
-**tidyverse**
-**ggpubr**
-**rstatix
-**patchwork**
+**tidyverse*
+**ggpubr*
+**rstatix*
+**patchwork*
 
 ## Data Preparation: 
 The script reads the data from a CSV file and selects relevant columns. It filters out the 'gi-100' genotype due to high variability in leaf temperature values.

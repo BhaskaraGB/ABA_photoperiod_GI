@@ -1,6 +1,7 @@
-# Overview
-This script performs a three-way mixed ANOVA and data visualization on leaf temperature (LT) data for different genotypes under varying photoperiods and treatments. It includes steps for identifying outliers, testing statistical assumptions, performing ANOVA, and creating visualizations. Find the published results of this analysis in this paper "GIGANTEA Is a Negative Regulator of Abscisic Acid Transcriptional Responses and Sensitivity in Arabidopsis"
+## *GIGANTEA Is a Negative Regulator of Abscisic Acid Transcriptional Responses and Sensitivity in Arabidopsis*
 https://academic.oup.com/pcp/article/63/9/1285/6647599
+
+The script performs a three-way mixed ANOVA and data visualization on leaf temperature (LT) data for different genotypes under varying photoperiods and treatments. It includes steps for identifying outliers, testing statistical assumptions, performing ANOVA, and creating visualizations. 
 
 ## Prerequisites
 Ensure the following R packages are installed:
